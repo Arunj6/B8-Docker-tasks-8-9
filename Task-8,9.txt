@@ -1,0 +1,141 @@
+Task-8
+===========
+With docker-compose, run multple containers as a single service
+
+1.)  An apache container, with the name 'my-website-1'. It should have a sample website bind mount to its root directory. The port to be exposed outside is 80
+2.)  An nginx container, with the name 'my-website-2'. It should have a volume mounted to its root directory.The port to be exposed is 8080 (the nginx default index file should changed to "mynginx-your name")
+3.)  A tomcat container. with the name 'my-website-3'. The port to be exposed is 8090
+
+
+Task 9
+==================
+
+With the help of docker-compose spin up a wordpress+phpmyadmin+database containers running as a service with seperate volume for mysql as well as for wordpress.
+Make sure all the three services are running fine.(phpmyadmin should accessible via public and make sure you can manage db via it)
+-----------------------------
+----------------------------
+
+
+Solutions
+-----------
+
+Task 8
+-------------------
+
+version: "3.9"
+services:
+  my-website-1:
+    image: "httpd:latest"
+    container_name: my-website-1
+    ports:
+      - "80:80"
+    volumes:
+     - /home/ec2-user/website/:/usr/local/apache2/htdocs/
+
+  my-website-2:
+    image: "nginx:latest"
+    container_name: my-website-2
+    volumes:
+      - "myvol:/usr/share/nginx/html"
+      - /usr/share/nginx/html/index.html:/usr/share/nginx/html/mynginx-arun.html
+      
+    ports:
+      - "8080:80"
+
+  my-website-3:
+    image: "tomact:latest"
+    container_name: my-website-3
+    ports:
+      - "8090:8080"
+
+volumes:
+  myvol:
+---------------------------------------------
+
+Task 9
+---------------------------------------------------
+version: "3.9"
+services:
+  database:
+    image: "mysql:5.7"
+    container_name: database
+    restart: always
+    networks:
+      - mynetwork
+    volumes:
+      - "mysqlvol:/var/lib/mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysqlroot@123
+      - MYSQL_DATABASE=wordpress
+      - MYSQL_USER=wpuser
+      - MYSQL_PASSWORD=wpuser@123
+
+
+  Wordpress-site:
+
+    image: "wordpress:latest"
+    container_name: wordpresssite
+    restart: always
+
+    networks:
+      - mynetwork
+
+    volumes:
+      - "wpvol:/var/www/html"
+
+    environment:
+      - WORDPRESS_DB_HOST=database
+      - WORDPRESS_DB_USER=wpuser
+      - WORDPRESS_DB_PASSWORD=wpuser@123
+      - WORDPRESS_DB_NAME=wordpress
+
+    ports:
+      - "80:80"
+
+  phpmyadmin:
+
+    image: "phpmyadmin:latest"
+    container_name: phpmyadmin
+    restart: always
+
+    networks:
+      - mynetwork
+
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST:database
+
+    ports:
+      - 8080:80
+
+
+networks:
+  mynetwork:
+
+volumes:
+  wpvol:
+  mysqlvol:
+
+
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
